@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Net;
+using System.IO;
 
 namespace WeatherApp
 {
@@ -11,35 +13,14 @@ namespace WeatherApp
     {
         static void Main(string[] args)
         {
-            string city = "London";
+            string city = args[0];
             string request = WeatherRequestBuilder.GetRequest(city);
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(request);
+            RequestHandler requestHandler = new RequestHandler(request);
+            string json = requestHandler.GetJsonAsStr();
+            WeatherForcastData weather = WeatherForcastData.GetInstanceFromJson(json);
+            Console.WriteLine(weather.getData());
+            Console.ReadLine();
 
-            client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-            HttpResponseMessage response = client.GetAsync(request).Result;  // Blocking call! Program will wait here until a response is received or a timeout occurs.
-            if (response.IsSuccessStatusCode)
-            {
-                // Parse the response body.
-                HttpContent content = response.Content;
-                WeatherForcastData.GetInstanceFromJson(content.ToString());
-            }
-            else
-            {
-                Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
-            }
         }
-
-        /*static async Task<WeatherForcastData> GetProductAsync(string path)
-        {
-            WeatherForcastData product = null;
-            HttpResponseMessage response = await client.GetAsync(path);
-            if (response.IsSuccessStatusCode)
-            {
-                product = await response.Content.To;
-            }
-            return product;
-        }*/
-        }
+    }
 }
